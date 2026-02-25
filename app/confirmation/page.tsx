@@ -13,7 +13,7 @@ function ConfirmationContent() {
       <div className='max-w-lg w-full'>
         {/* Success card */}
         <div className='lbbd-card text-center'>
-          <div className='w-16 h-16 bg-[#4C9F38] rounded-full flex items-center justify-center mx-auto mb-5'>
+          <div className='w-16 h-16 bg-[#00703c] rounded-full flex items-center justify-center mx-auto mb-5'>
             <svg
               className='w-8 h-8 text-white'
               fill='none'
@@ -40,7 +40,7 @@ function ConfirmationContent() {
           {reportId && (
             <div className='bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6'>
               <div className='text-xs text-gray-500 mb-1'>Reference Number</div>
-              <div className='font-mono text-lg font-bold text-[#00473E]'>
+              <div className='font-mono text-lg font-bold text-[#0b0c0c]'>
                 {reportId}
               </div>
               <p className='text-xs text-gray-500 mt-2'>

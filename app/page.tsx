@@ -4,7 +4,7 @@ export default function HomePage() {
   return (
     <div className='bg-gray-50 min-h-[calc(100vh-12rem)]'>
       {/* Hero */}
-      <section className='bg-[#00473E] text-white py-12 sm:py-16'>
+      <section className='bg-[#0b0c0c] text-white py-12 sm:py-16'>
         <div className='max-w-3xl mx-auto px-4 sm:px-6 text-center'>
           <h1 className='text-3xl sm:text-4xl font-bold mb-4'>
             Report Fly-Tipping
@@ -15,7 +15,7 @@ export default function HomePage() {
           </p>
           <Link
             href='/report'
-            className='inline-block bg-[#4C9F38] hover:bg-[#3d8a2d] text-white font-semibold
+            className='inline-block bg-[#00703c] hover:bg-[#005a30] text-white font-semibold
                        px-8 py-3.5 rounded transition-colors text-lg shadow-lg'
           >
             Start a Report
@@ -50,7 +50,7 @@ export default function HomePage() {
               key={item.step}
               className='bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center'
             >
-              <div className='w-10 h-10 bg-[#00473E] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-4'>
+              <div className='w-10 h-10 bg-[#0b0c0c] text-white rounded-full flex items-center justify-center text-lg font-bold mx-auto mb-4'>
                 {item.step}
               </div>
               <h3 className='font-semibold text-gray-900 mb-2'>{item.title}</h3>
@@ -84,7 +84,7 @@ export default function HomePage() {
 
       {/* PWA Install Hint */}
       <section className='max-w-3xl mx-auto px-4 sm:px-6 py-10 text-center'>
-        <div className='bg-[#00473E]/5 border border-[#00473E]/20 rounded-lg p-6'>
+        <div className='bg-gray-100 border border-gray-300 rounded-lg p-6'>
           <p className='text-sm text-gray-700'>
             <span className='font-semibold'>Works offline.</span> Install this
             app to your home screen for quick access — no app store needed.

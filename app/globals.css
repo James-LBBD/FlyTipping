@@ -4,14 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LBBD Council Brand Palette */
+/* LBBD Council Brand Palette — sourced from lbbd.gov.uk & eforms.lbbd.gov.uk */
 :root {
-  --lbbd-teal: #00473e;
-  --lbbd-teal-light: #005c50;
-  --lbbd-teal-dark: #003630;
-  --lbbd-green: #4c9f38;
-  --lbbd-green-light: #6ab553;
-  --lbbd-gold: #c8a951;
+  --lbbd-black: #0b0c0c;
+  --lbbd-dark: #231f20;
+  --lbbd-red: #a50032;
+  --lbbd-red-bright: #ed1c24;
+  --lbbd-green: #00703c;
+  --lbbd-green-light: #77b259;
+  --lbbd-yellow: #ffdd00;
+  --lbbd-blue: #1d70b8;
   --lbbd-white: #ffffff;
   --lbbd-off-white: #f3f4f6;
   --lbbd-gray-50: #f9fafb;
@@ -21,16 +23,12 @@
   --lbbd-gray-500: #6b7280;
   --lbbd-gray-700: #374151;
   --lbbd-gray-900: #111827;
-  --lbbd-red: #dc2626;
   --lbbd-orange: #ea580c;
-  --lbbd-blue: #2563eb;
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
-    Arial, sans-serif;
-  color: var(--lbbd-gray-900);
+  font-family: 'Heebo', Helvetica, Arial, sans-serif;
+  color: var(--lbbd-black);
   background: var(--lbbd-gray-50);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -38,8 +36,8 @@ body {
 
 /* GOV.UK-style focus states */
 *:focus-visible {
-  outline: 3px solid var(--lbbd-gold);
-  outline-offset: 2px;
+  outline: 3px solid var(--lbbd-yellow);
+  outline-offset: 0;
 }
 
 /* Leaflet map styles */
@@ -54,12 +52,12 @@ body {
 @layer components {
   .lbbd-input {
     @apply w-full px-4 py-3 border-2 border-gray-300 rounded-md text-base
-    focus:border-[#00473E] focus:ring-2 focus:ring-[#00473E]/20 focus:outline-none
+    focus:border-[#0b0c0c] focus:ring-2 focus:ring-[#0b0c0c]/20 focus:outline-none
     transition-colors;
   }
   .lbbd-select {
     @apply w-full px-4 py-3 border-2 border-gray-300 rounded-md text-base bg-white
-    focus:border-[#00473E] focus:ring-2 focus:ring-[#00473E]/20 focus:outline-none
+    focus:border-[#0b0c0c] focus:ring-2 focus:ring-[#0b0c0c]/20 focus:outline-none
     transition-colors appearance-none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 8.825L.35 3.175l.7-.7L6 7.425l4.95-4.95.7.7z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -74,18 +72,19 @@ body {
   }
   .lbbd-btn-primary {
     @apply inline-flex items-center justify-center px-6 py-3 
-    bg-[#00473E] hover:bg-[#003630] active:bg-[#002A24]
-    text-white font-semibold text-base rounded-md
+    bg-[#00703c] hover:bg-[#005a30] active:bg-[#004825]
+    text-white font-semibold text-base rounded-none
     transition-colors shadow-sm
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A951] focus-visible:ring-offset-2
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffdd00] focus-visible:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed;
+    border: 2px solid var(--lbbd-black);
   }
   .lbbd-btn-secondary {
     @apply inline-flex items-center justify-center px-6 py-3 
     bg-white hover:bg-gray-50 active:bg-gray-100
-    text-[#00473E] font-semibold text-base rounded-md
-    border-2 border-[#00473E] transition-colors
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A951] focus-visible:ring-offset-2
+    text-[#0b0c0c] font-semibold text-base rounded-none
+    border-2 border-[#0b0c0c] transition-colors
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffdd00] focus-visible:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed;
   }
   .lbbd-card {
@@ -105,7 +104,7 @@ body {
 /* Radio / Checkbox styling */
 input[type='radio'],
 input[type='checkbox'] {
-  accent-color: var(--lbbd-teal);
+  accent-color: var(--lbbd-green);
 }
 
 /* Confidence indicators */
@@ -134,6 +133,6 @@ input[type='checkbox'] {
 .lbbd-spinner {
   @apply inline-block w-10 h-10 rounded-full animate-spin;
   border-width: 3px;
-  border-color: #00473e;
+  border-color: #0b0c0c;
   border-top-color: transparent;
 }

@@ -319,20 +319,20 @@ export default function ReportPage() {
                   <div className='flex flex-col items-center'>
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors
-                        ${isActive ? 'bg-[#00473E] text-white' : 'bg-gray-200 text-gray-500'}
-                        ${isCurrent ? 'ring-2 ring-[#00473E]/30 ring-offset-2' : ''}`}
+                        ${isActive ? 'bg-[#0b0c0c] text-white' : 'bg-gray-200 text-gray-500'}
+                        ${isCurrent ? 'ring-2 ring-[#0b0c0c]/30 ring-offset-2' : ''}`}
                     >
                       {idx + 1}
                     </div>
                     <span
-                      className={`text-[11px] mt-1 ${isActive ? 'text-[#00473E] font-medium' : 'text-gray-400'}`}
+                      className={`text-[11px] mt-1 ${isActive ? 'text-[#0b0c0c] font-medium' : 'text-gray-400'}`}
                     >
                       {s.label}
                     </span>
                   </div>
                   {idx < STEP_LABELS.length - 1 && (
                     <div
-                      className={`flex-1 h-0.5 mx-2 mt-[-14px] ${isActive && idx < stepIndex ? 'bg-[#00473E]' : 'bg-gray-200'}`}
+                      className={`flex-1 h-0.5 mx-2 mt-[-14px] ${isActive && idx < stepIndex ? 'bg-[#0b0c0c]' : 'bg-gray-200'}`}
                     />
                   )}
                 </div>
@@ -413,8 +413,8 @@ export default function ReportPage() {
                 <div className='text-xs text-gray-500'>
                   {location.latitude.toFixed(5)},{' '}
                   {location.longitude.toFixed(5)}
-                  <span className='ml-2 inline-flex items-center gap-1 text-[#4C9F38]'>
-                    <span className='w-1.5 h-1.5 bg-[#4C9F38] rounded-full' />
+                  <span className='ml-2 inline-flex items-center gap-1 text-[#00703c]'>
+                    <span className='w-1.5 h-1.5 bg-[#00703c] rounded-full' />
                     {locationSource === 'exif'
                       ? 'From photo EXIF'
                       : locationSource === 'browser'
@@ -493,7 +493,7 @@ export default function ReportPage() {
             <div className='text-center py-12'>
               <div
                 className='spinner mx-auto mb-4'
-                style={{ borderTopColor: '#4C9F38' }}
+                style={{ borderTopColor: '#00703c' }}
               />
               <p className='font-semibold text-gray-900'>
                 Submitting your report...

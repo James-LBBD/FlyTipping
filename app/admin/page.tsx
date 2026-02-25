@@ -79,7 +79,7 @@ export default function AdminPage() {
             {
               label: 'Total Reports',
               value: stats.total,
-              color: 'border-[#00473E]'
+              color: 'border-[#0b0c0c]'
             },
             {
               label: 'Submitted',
@@ -115,7 +115,7 @@ export default function AdminPage() {
                 key={f}
                 onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 rounded text-xs font-medium transition-colors capitalize
-                  ${filter === f ? 'bg-[#00473E] text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}
+                  ${filter === f ? 'bg-[#0b0c0c] text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'}`}
               >
                 {f}
               </button>
@@ -139,7 +139,7 @@ export default function AdminPage() {
             {reports.length === 0 && (
               <Link
                 href='/report'
-                className='text-[#00473E] font-medium text-sm hover:underline'
+                className='text-[#a50032] font-medium text-sm hover:underline'
               >
                 Submit the first report &rarr;
               </Link>
@@ -165,7 +165,7 @@ export default function AdminPage() {
                       key={report.id}
                       className='hover:bg-gray-50 transition-colors'
                     >
-                      <td className='px-4 py-3 font-mono text-xs text-[#00473E]'>
+                      <td className='px-4 py-3 font-mono text-xs text-[#0b0c0c]'>
                         {report.id.slice(0, 12)}...
                       </td>
                       <td className='px-4 py-3 text-gray-600'>
@@ -196,7 +196,7 @@ export default function AdminPage() {
                           <div className='flex items-center gap-2'>
                             <div className='w-16 bg-gray-200 rounded-full h-1.5'>
                               <div
-                                className='h-1.5 rounded-full bg-[#4C9F38]'
+                                className='h-1.5 rounded-full bg-[#00703c]'
                                 style={{
                                   width: `${Math.round(report.aiMetadata.confidence.overall * 100)}%`
                                 }}

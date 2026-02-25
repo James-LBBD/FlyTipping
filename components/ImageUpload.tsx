@@ -79,7 +79,7 @@ export default function ImageUpload({
           className={`
             border-2 border-dashed rounded-lg p-10 text-center cursor-pointer
             transition-all
-            ${isDragging ? 'border-[#00473E] bg-[#00473E]/5' : 'border-gray-300 hover:border-[#00473E]/50'}
+            ${isDragging ? 'border-[#0b0c0c] bg-gray-50' : 'border-gray-300 hover:border-gray-500'}
             ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
           `}
         >

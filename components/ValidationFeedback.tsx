@@ -13,7 +13,7 @@ export default function ValidationFeedback({
 }: ValidationFeedbackProps) {
   if (loading) {
     return (
-      <div className='bg-[#00473E]/5 border border-[#00473E]/20 rounded-lg p-6 text-center'>
+      <div className='bg-gray-100 border border-gray-300 rounded-lg p-6 text-center'>
         <div className='spinner mx-auto mb-4' />
         <p className='text-gray-900 font-semibold text-sm'>
           Validating image with AI...

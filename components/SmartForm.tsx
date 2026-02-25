@@ -78,7 +78,7 @@ export default function SmartForm({
   return (
     <form onSubmit={handleSubmit} className='space-y-6'>
       {/* AI Summary Banner */}
-      <div className='bg-[#00473E]/5 border border-[#00473E]/20 rounded-lg p-4'>
+      <div className='bg-gray-100 border border-gray-300 rounded-lg p-4'>
         <div className='flex items-start gap-3'>
           <span className='ai-badge text-xs mt-0.5'>AI</span>
           <div className='flex-1'>
@@ -107,7 +107,7 @@ export default function SmartForm({
                 value={val}
                 checked={formData.landOwnership === val}
                 onChange={() => update('landOwnership', val)}
-                className='w-4 h-4 text-[#00473E] focus:ring-[#00473E]'
+                className='w-4 h-4 text-[#00703c] focus:ring-[#00703c]'
               />
               <span className='text-sm text-gray-800'>
                 {landOwnershipLabels[val]}
@@ -176,7 +176,7 @@ export default function SmartForm({
             type='checkbox'
             checked={formData.hazardous}
             onChange={(e) => update('hazardous', e.target.checked)}
-            className='w-4 h-4 text-[#00473E] focus:ring-[#00473E] rounded'
+            className='w-4 h-4 text-[#00703c] focus:ring-[#00703c] rounded'
           />
           <span className='text-sm font-medium text-gray-800'>
             Contains hazardous materials
@@ -224,7 +224,7 @@ export default function SmartForm({
                 value={val}
                 checked={formData.knowsWhoTipped === val}
                 onChange={() => update('knowsWhoTipped', val)}
-                className='w-4 h-4 text-[#00473E] focus:ring-[#00473E]'
+                className='w-4 h-4 text-[#00703c] focus:ring-[#00703c]'
               />
               <span className='text-sm text-gray-800 capitalize'>{val}</span>
             </label>

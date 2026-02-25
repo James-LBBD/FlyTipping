@@ -76,10 +76,10 @@ export default function MapComponent({
       try {
         L.geoJSON(boundaryGeoJson, {
           style: {
-            color: '#00473E',
+            color: '#0b0c0c',
             weight: 2,
             opacity: 0.6,
-            fillColor: '#00473E',
+            fillColor: '#0b0c0c',
             fillOpacity: 0.05
           }
         }).addTo(map);
@@ -100,7 +100,7 @@ export default function MapComponent({
     nearbyReports.forEach((report) => {
       const icon = L.divIcon({
         className: 'nearby-report-marker',
-        html: `<div style="width:12px;height:12px;background:#C8A951;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
+        html: `<div style="width:12px;height:12px;background:#a50032;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)"></div>`,
         iconSize: [12, 12],
         iconAnchor: [6, 6]
       });
@@ -132,7 +132,7 @@ export default function MapComponent({
     if (location) {
       const icon = L.divIcon({
         className: 'selected-location-marker',
-        html: `<div style="width:20px;height:20px;background:#00473E;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>`,
+        html: `<div style="width:20px;height:20px;background:#0b0c0c;border:3px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.35)"></div>`,
         iconSize: [20, 20],
         iconAnchor: [10, 10]
       });

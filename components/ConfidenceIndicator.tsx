@@ -27,7 +27,7 @@ export default function ConfidenceIndicator({
           <div
             className={`h-1.5 rounded-full transition-all ${
               color === 'green'
-                ? 'bg-[#4C9F38]'
+                ? 'bg-[#00703c]'
                 : color === 'yellow'
                   ? 'bg-amber-500'
                   : 'bg-red-500'

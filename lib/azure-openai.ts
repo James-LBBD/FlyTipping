@@ -27,6 +27,17 @@ function getClient(deployment: string): AzureOpenAI {
   });
 }
 
+/** Strip markdown code fences and extract raw JSON from GPT responses */
+function extractJSON(raw: string): string {
+  // Remove ```json ... ``` or ``` ... ``` wrappers
+  const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenceMatch) return fenceMatch[1].trim();
+  // Try to find JSON object/array directly
+  const objectMatch = raw.match(/\{[\s\S]*\}/);
+  if (objectMatch) return objectMatch[0];
+  return raw.trim();
+}
+
 export async function validateImage(
   imageBase64: string
 ): Promise<ValidationResult> {
@@ -68,7 +79,7 @@ Respond in JSON format only, no markdown:
     });
 
     const content = result.choices[0]?.message?.content || '{}';
-    const parsed = JSON.parse(content);
+    const parsed = JSON.parse(extractJSON(content));
 
     return {
       isValid: parsed.isSafe && parsed.containsFlyTipping,
@@ -145,7 +156,7 @@ Respond in JSON only, no markdown:
     });
 
     const content = result.choices[0]?.message?.content || '{}';
-    return JSON.parse(content);
+    return JSON.parse(extractJSON(content));
   } catch (error) {
     console.error('Field extraction failed:', error);
     throw new Error('Failed to extract fields from image');

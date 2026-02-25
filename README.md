@@ -60,9 +60,32 @@ npm start
 
 ## Deployment
 
-Deploy to Azure App Service with System-Assigned Managed Identity enabled.
+### Azure App Service (from VS Code)
 
-See [deployment documentation](./docs/deployment.md) for detailed instructions.
+Deploy directly from VS Code using the Azure App Service extension.
+
+**Azure resources needed:**
+- Azure App Service (Linux, Node 20 LTS)
+- Azure OpenAI resource with GPT-4 Vision and embedding deployments
+
+**Steps:**
+
+1. In the Azure portal, create a **Linux App Service** with **Node 20 LTS** runtime.
+2. Enable **System-Assigned Managed Identity** on the App Service.
+3. Grant the Managed Identity the *Cognitive Services OpenAI User* role on your Azure OpenAI resource.
+4. In App Service → Configuration → Application Settings, add:
+   ```
+   AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+   AZURE_OPENAI_GPT4_VISION_DEPLOYMENT=gpt-4-vision
+   AZURE_OPENAI_GPT4_DEPLOYMENT=gpt-4
+   AZURE_OPENAI_EMBEDDING_DEPLOYMENT=text-embedding-3-large
+   ```
+5. In App Service → Configuration → General Settings, set the **Startup Command** to:
+   ```
+   npm run build && npm run start
+   ```
+6. In VS Code, open the **Azure** sidebar (Shift+Alt+A), right-click your App Service, and select **Deploy to Web App...**
+7. Select the project folder when prompted.
 
 ## Architecture
 
