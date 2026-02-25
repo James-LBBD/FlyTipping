@@ -1,0 +1,139 @@
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* LBBD Council Brand Palette */
+:root {
+  --lbbd-teal: #00473e;
+  --lbbd-teal-light: #005c50;
+  --lbbd-teal-dark: #003630;
+  --lbbd-green: #4c9f38;
+  --lbbd-green-light: #6ab553;
+  --lbbd-gold: #c8a951;
+  --lbbd-white: #ffffff;
+  --lbbd-off-white: #f3f4f6;
+  --lbbd-gray-50: #f9fafb;
+  --lbbd-gray-100: #f3f4f6;
+  --lbbd-gray-200: #e5e7eb;
+  --lbbd-gray-300: #d1d5db;
+  --lbbd-gray-500: #6b7280;
+  --lbbd-gray-700: #374151;
+  --lbbd-gray-900: #111827;
+  --lbbd-red: #dc2626;
+  --lbbd-orange: #ea580c;
+  --lbbd-blue: #2563eb;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  color: var(--lbbd-gray-900);
+  background: var(--lbbd-gray-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* GOV.UK-style focus states */
+*:focus-visible {
+  outline: 3px solid var(--lbbd-gold);
+  outline-offset: 2px;
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+  border-radius: 0.5rem;
+}
+
+/* Form field styling */
+@layer components {
+  .lbbd-input {
+    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-md text-base
+    focus:border-[#00473E] focus:ring-2 focus:ring-[#00473E]/20 focus:outline-none
+    transition-colors;
+  }
+  .lbbd-select {
+    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-md text-base bg-white
+    focus:border-[#00473E] focus:ring-2 focus:ring-[#00473E]/20 focus:outline-none
+    transition-colors appearance-none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 8.825L.35 3.175l.7-.7L6 7.425l4.95-4.95.7.7z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+  }
+  .lbbd-label {
+    @apply block text-base font-semibold text-gray-900 mb-2;
+  }
+  .lbbd-hint {
+    @apply text-sm text-gray-600 mb-2;
+  }
+  .lbbd-btn-primary {
+    @apply inline-flex items-center justify-center px-6 py-3 
+    bg-[#00473E] hover:bg-[#003630] active:bg-[#002A24]
+    text-white font-semibold text-base rounded-md
+    transition-colors shadow-sm
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A951] focus-visible:ring-offset-2
+    disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .lbbd-btn-secondary {
+    @apply inline-flex items-center justify-center px-6 py-3 
+    bg-white hover:bg-gray-50 active:bg-gray-100
+    text-[#00473E] font-semibold text-base rounded-md
+    border-2 border-[#00473E] transition-colors
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C8A951] focus-visible:ring-offset-2
+    disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .lbbd-card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+  }
+  .lbbd-section-title {
+    @apply text-xl font-bold text-gray-900 mb-1;
+  }
+
+  /* AI Enhancement visual badge */
+  .ai-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
+    bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+}
+
+/* Radio / Checkbox styling */
+input[type='radio'],
+input[type='checkbox'] {
+  accent-color: var(--lbbd-teal);
+}
+
+/* Confidence indicators */
+.confidence-high {
+  @apply bg-green-50 text-green-800 border-green-300;
+}
+.confidence-medium {
+  @apply bg-yellow-50 text-yellow-800 border-yellow-300;
+}
+.confidence-low {
+  @apply bg-red-50 text-red-800 border-red-300;
+}
+
+/* Progress bar fill animation */
+@keyframes fill-bar {
+  from {
+    width: 0;
+  }
+}
+.animate-fill {
+  animation: fill-bar 0.8s ease-out forwards;
+}
+
+/* Spinner */
+.spinner,
+.lbbd-spinner {
+  @apply inline-block w-10 h-10 rounded-full animate-spin;
+  border-width: 3px;
+  border-color: #00473e;
+  border-top-color: transparent;
+}
