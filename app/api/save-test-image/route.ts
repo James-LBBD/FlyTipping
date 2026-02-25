@@ -26,9 +26,7 @@ export async function POST(request: NextRequest) {
       : dataUrl;
 
     // Sanitize filename
-    const safeName = filename
-      .replace(/[^a-zA-Z0-9._-]/g, '_')
-      .toLowerCase();
+    const safeName = filename.replace(/[^a-zA-Z0-9._-]/g, '_').toLowerCase();
     const savePath = join(FIXTURES_DIR, safeName);
 
     // Save to disk

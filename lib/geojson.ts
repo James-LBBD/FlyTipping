@@ -109,9 +109,84 @@ export function isPointInBoundary(
   return false;
 }
 
-export async function validateLocation(coords: Coordinates): Promise<boolean> {
+/** Distance from a point to the nearest boundary edge, in metres (approximate) */
+function distanceToBoundary(
+  coords: Coordinates,
+  boundary: GeoJSONFeatureCollection
+): number {
+  const point: [number, number] = [coords.longitude, coords.latitude];
+  let minDist = Infinity;
+
+  for (const feature of boundary.features) {
+    const rings: number[][][] =
+      feature.geometry.type === 'Polygon'
+        ? [feature.geometry.coordinates[0] as number[][]]
+        : (feature.geometry.coordinates as number[][][][]).map(
+            (p) => p[0] as number[][]
+          );
+
+    for (const ring of rings) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const dist = pointToSegmentDistance(point, ring[j], ring[i]);
+        if (dist < minDist) minDist = dist;
+      }
+    }
+  }
+  return minDist;
+}
+
+/** Approx distance in metres between two [lon, lat] points using Haversine */
+function haversineMetres(a: number[], b: number[]): number {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b[1] - a[1]);
+  const dLon = toRad(b[0] - a[0]);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLon = Math.sin(dLon / 2);
+  const h =
+    sinLat * sinLat +
+    Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * sinLon * sinLon;
+  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+}
+
+/** Minimum distance (metres) from a point to a line segment */
+function pointToSegmentDistance(p: number[], a: number[], b: number[]): number {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  if (dx === 0 && dy === 0) return haversineMetres(p, a);
+  let t = ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy);
+  t = Math.max(0, Math.min(1, t));
+  const closest = [a[0] + t * dx, a[1] + t * dy];
+  return haversineMetres(p, closest);
+}
+
+export interface LocationValidation {
+  withinBoundary: boolean;
+  nearBoundary: boolean;
+  distanceMetres: number;
+}
+
+/** Buffer tolerance in metres — accept reports this close to the boundary.
+ *  The ONS boundary follows river centrelines, so riverside areas like
+ *  Thames Road / Creekmouth (which ARE in LBBD) can appear ~700m outside. */
+const BOUNDARY_BUFFER_METRES = 800;
+
+export async function validateLocation(
+  coords: Coordinates
+): Promise<LocationValidation> {
   const boundary = await loadLBBDBoundary();
-  return isPointInBoundary(coords, boundary);
+  const inside = isPointInBoundary(coords, boundary);
+
+  if (inside) {
+    return { withinBoundary: true, nearBoundary: false, distanceMetres: 0 };
+  }
+
+  const dist = distanceToBoundary(coords, boundary);
+  return {
+    withinBoundary: dist <= BOUNDARY_BUFFER_METRES,
+    nearBoundary: dist <= BOUNDARY_BUFFER_METRES,
+    distanceMetres: Math.round(dist)
+  };
 }
 
 // Get center point of LBBD for map initialization

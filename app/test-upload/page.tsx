@@ -38,14 +38,20 @@ export default function TestUploadPage() {
           ...prev,
           {
             name: file.name,
-            status: result.success ? `✅ Saved as ${result.savedAs}` : `❌ ${result.error}`,
+            status: result.success
+              ? `✅ Saved as ${result.savedAs}`
+              : `❌ ${result.error}`,
             size: `${Math.round(file.size / 1024)} KB`
           }
         ]);
       } catch (err) {
         setUploads((prev) => [
           ...prev,
-          { name: file.name, status: `❌ ${String(err)}`, size: `${Math.round(file.size / 1024)} KB` }
+          {
+            name: file.name,
+            status: `❌ ${String(err)}`,
+            size: `${Math.round(file.size / 1024)} KB`
+          }
         ]);
       }
     }
@@ -71,7 +77,9 @@ export default function TestUploadPage() {
         />
         <div className='text-4xl mb-2'>📸</div>
         <p className='font-semibold'>Click to select images or drag & drop</p>
-        <p className='text-sm text-gray-400 mt-1'>JPG, PNG, GIF — multiple files supported</p>
+        <p className='text-sm text-gray-400 mt-1'>
+          JPG, PNG, GIF — multiple files supported
+        </p>
       </label>
 
       {saving && (

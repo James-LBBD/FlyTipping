@@ -3,13 +3,59 @@ import {
   saveReport,
   saveImage,
   saveEmbedding,
-  generateReportId
+  generateReportId,
+  getAllReports
 } from '@/lib/storage';
+import { findSimilarReports } from '@/lib/similarity';
 import type { Report } from '@/types';
+
+const HIGH_SIMILARITY_THRESHOLD = 0.85;
 
 export async function POST(request: NextRequest) {
   try {
     const reportData = await request.json();
+
+    // ── Server-side duplicate enforcement ──────────────────────────
+    if (reportData.embedding?.vector && reportData.location?.coordinates) {
+      const allReports = await getAllReports();
+      const reportsMap = new Map();
+      for (const report of allReports) {
+        if (report.embedding && report.location.coordinates) {
+          reportsMap.set(report.id, {
+            embedding: report.embedding,
+            coords: report.location.coordinates,
+            imageUrl: `/images/${report.image.id}.jpg`,
+            timestamp: report.createdAt
+          });
+        }
+      }
+
+      const similarReports = findSimilarReports(
+        reportData.embedding.vector,
+        reportData.location.coordinates,
+        reportsMap,
+        100, // search radius metres
+        0.7 // similarity threshold
+      );
+
+      const highConfidenceDuplicate = similarReports.find(
+        (r) => r.similarity >= HIGH_SIMILARITY_THRESHOLD
+      );
+
+      // High-confidence duplicates (>=85%) are ALWAYS blocked — the override
+      // flag only applies to medium-confidence matches (70-85%)
+      if (highConfidenceDuplicate) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'duplicate_blocked',
+            message: `This report is ${Math.round(highConfidenceDuplicate.similarity * 100)}% similar to an existing report (${highConfidenceDuplicate.reportId}). Submission blocked.`,
+            similarReport: highConfidenceDuplicate
+          },
+          { status: 409 }
+        );
+      }
+    }
 
     // Generate unique report ID
     const reportId = generateReportId();

@@ -38,6 +38,35 @@ function extractJSON(raw: string): string {
   return raw.trim();
 }
 
+/** Retry wrapper for Azure OpenAI calls — handles transient iBoss proxy errors */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 2,
+  delayMs: number = 1500
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: unknown) {
+      lastError = error;
+      const msg = error instanceof Error ? error.message : String(error);
+      const isTransient =
+        msg.includes('check-access-response-enc') ||
+        msg.includes('ibosscloud') ||
+        (msg.includes('400') && !msg.includes('content_filter'));
+      if (!isTransient || attempt === maxRetries) {
+        throw error;
+      }
+      console.warn(
+        `[azure-openai] Transient proxy error (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${delayMs}ms...`
+      );
+      await new Promise((r) => setTimeout(r, delayMs));
+    }
+  }
+  throw lastError;
+}
+
 export async function validateImage(
   imageBase64: string
 ): Promise<ValidationResult> {
@@ -58,25 +87,27 @@ Respond in JSON format only, no markdown:
 }`;
 
   try {
-    const result = await openai.chat.completions.create({
-      model: gpt4VisionDeployment,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`
+    const result = await withRetry(() =>
+      openai.chat.completions.create({
+        model: gpt4VisionDeployment,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageBase64}`
+                }
               }
-            }
-          ]
-        }
-      ],
-      max_tokens: 500,
-      temperature: 0.3
-    });
+            ]
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.3
+      })
+    );
 
     const content = result.choices[0]?.message?.content || '{}';
     const parsed = JSON.parse(extractJSON(content));
@@ -135,25 +166,27 @@ Respond in JSON only, no markdown:
 }`;
 
   try {
-    const result = await openai.chat.completions.create({
-      model: gpt4VisionDeployment,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: prompt },
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`
+    const result = await withRetry(() =>
+      openai.chat.completions.create({
+        model: gpt4VisionDeployment,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${imageBase64}`
+                }
               }
-            }
-          ]
-        }
-      ],
-      max_tokens: 800,
-      temperature: 0.3
-    });
+            ]
+          }
+        ],
+        max_tokens: 800,
+        temperature: 0.3
+      })
+    );
 
     const content = result.choices[0]?.message?.content || '{}';
     return JSON.parse(extractJSON(content));
@@ -167,10 +200,12 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   const openai = getClient(embeddingDeployment);
 
   try {
-    const result = await openai.embeddings.create({
-      model: embeddingDeployment,
-      input: text
-    });
+    const result = await withRetry(() =>
+      openai.embeddings.create({
+        model: embeddingDeployment,
+        input: text
+      })
+    );
     return result.data[0].embedding;
   } catch (error) {
     console.error('Embedding generation failed:', error);

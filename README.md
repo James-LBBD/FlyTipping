@@ -20,6 +20,7 @@ A Progressive Web Application (PWA) for AI-assisted fly-tipping incident reporti
 ## Setup
 
 1. **Clone and install dependencies:**
+
    ```bash
    npm install
    ```
@@ -33,6 +34,7 @@ A Progressive Web Application (PWA) for AI-assisted fly-tipping incident reporti
    - **Production:** Managed Identity will be configured during deployment
 
 4. **Assign Azure RBAC permissions:**
+
    ```bash
    az role assignment create \
      --assignee <your-email> \
@@ -65,6 +67,7 @@ npm start
 Deploy directly from VS Code using the Azure App Service extension.
 
 **Azure resources needed:**
+
 - Azure App Service (Linux, Node 20 LTS)
 - Azure OpenAI resource with GPT-4 Vision and embedding deployments
 
@@ -72,7 +75,7 @@ Deploy directly from VS Code using the Azure App Service extension.
 
 1. In the Azure portal, create a **Linux App Service** with **Node 20 LTS** runtime.
 2. Enable **System-Assigned Managed Identity** on the App Service.
-3. Grant the Managed Identity the *Cognitive Services OpenAI User* role on your Azure OpenAI resource.
+3. Grant the Managed Identity the _Cognitive Services OpenAI User_ role on your Azure OpenAI resource.
 4. In App Service → Configuration → Application Settings, add:
    ```
    AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com

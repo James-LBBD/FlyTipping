@@ -3,7 +3,7 @@
  * Uses local test images and runs them through all API endpoints,
  * simulating the full user flow:
  *   1. Upload image → validate-image
- *   2. Pick location → validate-location  
+ *   2. Pick location → validate-location
  *   3. AI analysis → extract-fields
  *   4. Similarity → generate-embedding + check-duplicates
  *   5. Submit → submit-report
@@ -14,38 +14,50 @@ import { join } from 'path';
 
 const BASE_URL = 'http://localhost:3000';
 
-// Thames Road, Barking coordinates
+// Thames Road, Barking coordinates (near River Roding — within 250m buffer of LBBD boundary)
 const TEST_LOCATION = { latitude: 51.5195, longitude: 0.0823 };
 
 function loadLocalImages() {
   // Prefer test-fixtures/ subfolder, fall back to images/ root
   const fixturesDir = join(process.cwd(), 'images', 'test-fixtures');
   const imagesDir = join(process.cwd(), 'images');
-  const searchDir = existsSync(fixturesDir) && readdirSync(fixturesDir).some(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f))
-    ? fixturesDir
-    : imagesDir;
-  
+  const searchDir =
+    existsSync(fixturesDir) &&
+    readdirSync(fixturesDir).some((f) => /\.(jpg|jpeg|png|gif|webp)$/i.test(f))
+      ? fixturesDir
+      : imagesDir;
+
   if (!existsSync(searchDir)) {
-    console.error('❌ No images/ directory found. Place test images there first.');
+    console.error(
+      '❌ No images/ directory found. Place test images there first.'
+    );
     process.exit(1);
   }
-  const files = readdirSync(searchDir).filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f));
+  const files = readdirSync(searchDir).filter((f) =>
+    /\.(jpg|jpeg|png|gif|webp)$/i.test(f)
+  );
   if (files.length === 0) {
     console.error('❌ No image files found in', searchDir);
     process.exit(1);
   }
   console.log(`  Using images from: ${searchDir}`);
-  return files.map(f => ({
+  return files.map((f) => ({
     name: f,
-    path: join(searchDir, f),
+    path: join(searchDir, f)
   }));
 }
 
 function imageToDataUrl(filePath) {
   const buffer = readFileSync(filePath);
   const base64 = buffer.toString('base64');
-  const ext = filePath.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
-  return { base64, dataUrl: `data:${ext};base64,${base64}`, size: buffer.length };
+  const ext = filePath.toLowerCase().endsWith('.png')
+    ? 'image/png'
+    : 'image/jpeg';
+  return {
+    base64,
+    dataUrl: `data:${ext};base64,${base64}`,
+    size: buffer.length
+  };
 }
 
 async function callApi(endpoint, body) {
@@ -62,7 +74,9 @@ async function callApi(endpoint, body) {
 function printResult(label, result) {
   const icon = result.status === 200 ? '✅' : '❌';
   console.log(`\n  ${icon} ${label} (HTTP ${result.status})`);
-  console.log('  ' + JSON.stringify(result.data, null, 2).split('\n').join('\n  '));
+  console.log(
+    '  ' + JSON.stringify(result.data, null, 2).split('\n').join('\n  ')
+  );
 }
 
 async function testImage(imageInfo) {
@@ -85,7 +99,9 @@ async function testImage(imageInfo) {
 
   // ── 2. Validate Location ────────────────────────────────────────
   console.log('\n── Step 2: Validate Location (/api/validate-location) ──');
-  console.log(`  Location: Thames Road, Barking (${TEST_LOCATION.latitude}, ${TEST_LOCATION.longitude})`);
+  console.log(
+    `  Location: Thames Road, Barking (${TEST_LOCATION.latitude}, ${TEST_LOCATION.longitude})`
+  );
   const locationValidation = await callApi('/api/validate-location', {
     coordinates: TEST_LOCATION
   });
@@ -105,7 +121,10 @@ async function testImage(imageInfo) {
   const embeddingSummary = {
     status: embeddingResult.status,
     data: embeddingResult.data?.embedding
-      ? { dimensions: embeddingResult.data.embedding.length, sample: embeddingResult.data.embedding.slice(0, 5) }
+      ? {
+          dimensions: embeddingResult.data.embedding.length,
+          sample: embeddingResult.data.embedding.slice(0, 5)
+        }
       : embeddingResult.data
   };
   printResult('Embedding Generation', embeddingSummary);
@@ -125,7 +144,9 @@ async function testImage(imageInfo) {
     wasteType: extraction.data?.wasteType || 'household',
     wasteSize: extraction.data?.wasteSize || 'large',
     hazardous: extraction.data?.hazardous ?? false,
-    description: extraction.data?.description || 'Fly-tipped waste found at Thames Road, Barking',
+    description:
+      extraction.data?.description ||
+      'Fly-tipped waste found at Thames Road, Barking',
     aiSummary: extraction.data?.summary || 'AI-detected fly-tipping incident',
     severityRating: extraction.data?.severityRating || 7,
     landOwnership: 'public',
@@ -176,6 +197,24 @@ async function testImage(imageInfo) {
     isDuplicateOverridden: false,
     submittedVia: 'api-test'
   };
+
+  // ── Block submission if high-confidence duplicate detected ──────
+  const hasDuplicates = duplicates.data?.hasDuplicates;
+  const highestSim = duplicates.data?.highestSimilarity || 0;
+  if (hasDuplicates && highestSim >= 0.85) {
+    console.log(
+      `  🚫 BLOCKED — duplicate detected (${Math.round(highestSim * 100)}% match). Skipping submission.`
+    );
+    return {
+      validation: validation.data,
+      location: locationValidation.data,
+      extraction: extraction.data,
+      embeddingDimensions: embeddingResult.data?.embedding?.length,
+      duplicates: duplicates.data,
+      submission: { success: false, blocked: true, reason: 'duplicate' }
+    };
+  }
+
   const submission = await callApi('/api/submit-report', submitPayload);
   printResult('Report Submission', submission);
 
@@ -230,13 +269,19 @@ async function main() {
     } else if (r.result?.validation) {
       const v = r.result.validation;
       console.log(`${v.isValid ? '✅' : '❌'} ${r.name}`);
-      console.log(`   Fly-tipping: ${v.containsFlyTipping ? 'Yes' : 'No'} | Safe: ${v.isSafe ? 'Yes' : 'No'} | Confidence: ${v.confidence}`);
+      console.log(
+        `   Fly-tipping: ${v.containsFlyTipping ? 'Yes' : 'No'} | Safe: ${v.isSafe ? 'Yes' : 'No'} | Confidence: ${v.confidence}`
+      );
       if (r.result.extraction) {
         const e = r.result.extraction;
-        console.log(`   Waste type: ${e.wasteType} | Size: ${e.wasteSize} | Severity: ${e.severityRating}/10`);
+        console.log(
+          `   Waste type: ${e.wasteType} | Size: ${e.wasteSize} | Severity: ${e.severityRating}/10`
+        );
       }
       if (r.result.submission?.success) {
         console.log(`   📝 Report submitted: ${r.result.submission.reportId}`);
+      } else if (r.result.submission?.blocked) {
+        console.log(`   🚫 Submission blocked: ${r.result.submission.reason}`);
       }
     }
   }

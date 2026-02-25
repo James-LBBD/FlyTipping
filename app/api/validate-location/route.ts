@@ -13,12 +13,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isValid = await validateLocation(coordinates as Coordinates);
+    const result = await validateLocation(coordinates as Coordinates);
 
     return NextResponse.json({
-      isValid,
-      withinBoundary: isValid,
-      coordinates,
+      isValid: result.withinBoundary,
+      withinBoundary: result.withinBoundary,
+      nearBoundary: result.nearBoundary,
+      distanceMetres: result.distanceMetres,
+      coordinates
     });
   } catch (error) {
     console.error('Location validation error:', error);

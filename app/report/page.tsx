@@ -42,6 +42,9 @@ const STEP_LABELS: { key: Step; label: string }[] = [
   { key: 'form', label: 'Details' }
 ];
 
+// Default fallback location — centre of LBBD (Thames Road, Barking)
+const DEFAULT_LOCATION: Coordinates = { latitude: 51.5195, longitude: 0.0823 };
+
 // Try to extract EXIF GPS from image data
 async function extractExifCoords(dataUrl: string): Promise<Coordinates | null> {
   try {
@@ -125,6 +128,10 @@ export default function ReportPage() {
         if (browserCoords) {
           setLocation(browserCoords);
           setLocationSource('browser');
+        } else {
+          // Default to LBBD area so map always has a pin
+          setLocation(DEFAULT_LOCATION);
+          setLocationSource('manual');
         }
       }
 
@@ -249,7 +256,9 @@ export default function ReportPage() {
         },
         locationDetails,
         possibleDuplicates: similarReports,
-        isDuplicateOverridden: similarReports.length > 0,
+        isDuplicateOverridden:
+          similarReports.length > 0 &&
+          similarReports.every((r) => r.similarity < 0.85),
         submittedVia: 'web' as const
       };
 
@@ -398,7 +407,7 @@ export default function ReportPage() {
                     ? 'Location detected from your photo. Adjust the pin if needed.'
                     : locationSource === 'browser'
                       ? 'Using your current location. Drag the pin to the exact spot.'
-                      : 'Click the map to place the pin at the fly-tip location.'}
+                      : 'Drag the pin or click the map to mark the fly-tip location.'}
                 </p>
               </div>
 
