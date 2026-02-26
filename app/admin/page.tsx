@@ -169,14 +169,25 @@ export default function AdminPage() {
                         {report.id.slice(0, 12)}...
                       </td>
                       <td className='px-4 py-3 text-gray-600'>
-                        {new Date(report.createdAt).toLocaleDateString(
-                          'en-GB',
-                          {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                          }
-                        )}
+                        <div>
+                          {new Date(report.createdAt).toLocaleDateString(
+                            'en-GB',
+                            {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            }
+                          )}
+                        </div>
+                        <div className='text-xs text-gray-400'>
+                          {new Date(report.createdAt).toLocaleTimeString(
+                            'en-GB',
+                            {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            }
+                          )}
+                        </div>
                       </td>
                       <td className='px-4 py-3'>
                         <span
