@@ -9,10 +9,10 @@ function ConfirmationContent() {
   const reportId = searchParams.get('reportId');
 
   return (
-    <div className='bg-gray-50 min-h-[calc(100vh-12rem)] flex items-center justify-center px-4 py-12'>
+    <div className='bg-gray-50 min-h-[calc(100vh-8rem)] flex items-center justify-center px-3 sm:px-4 py-8 sm:py-12'>
       <div className='max-w-lg w-full'>
         {/* Success card */}
-        <div className='lbbd-card text-center'>
+        <div className='lbbd-card text-center p-5 sm:p-6'>
           <div className='w-16 h-16 bg-[#00703c] rounded-full flex items-center justify-center mx-auto mb-5'>
             <svg
               className='w-8 h-8 text-white'
@@ -29,7 +29,7 @@ function ConfirmationContent() {
             </svg>
           </div>
 
-          <h1 className='text-2xl font-bold text-gray-900 mb-2'>
+          <h1 className='text-xl sm:text-2xl font-bold text-gray-900 mb-2'>
             Report Submitted
           </h1>
           <p className='text-gray-600 text-sm mb-6'>
@@ -66,7 +66,7 @@ function ConfirmationContent() {
         </div>
 
         {/* What happens next */}
-        <div className='mt-6 bg-white border border-gray-200 rounded-lg p-5'>
+        <div className='mt-4 sm:mt-6 bg-white border border-gray-200 rounded-lg p-4 sm:p-5'>
           <h2 className='text-sm font-semibold text-gray-900 mb-3'>
             What happens next?
           </h2>
@@ -86,7 +86,7 @@ export default function ConfirmationPage() {
   return (
     <Suspense
       fallback={
-        <div className='bg-gray-50 min-h-[calc(100vh-12rem)] flex items-center justify-center'>
+        <div className='bg-gray-50 min-h-[calc(100vh-8rem)] flex items-center justify-center'>
           <div className='spinner' />
         </div>
       }

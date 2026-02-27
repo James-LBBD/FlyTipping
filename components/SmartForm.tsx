@@ -76,12 +76,12 @@ export default function SmartForm({
     setFormData((prev) => ({ ...prev, [key]: value }));
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-6'>
+    <form onSubmit={handleSubmit} className='space-y-5 sm:space-y-6'>
       {/* AI Summary Banner */}
-      <div className='bg-gray-100 border border-gray-300 rounded-lg p-4'>
-        <div className='flex items-start gap-3'>
-          <span className='ai-badge text-xs mt-0.5'>AI</span>
-          <div className='flex-1'>
+      <div className='bg-gray-100 border border-gray-300 rounded-lg p-3 sm:p-4'>
+        <div className='flex items-start gap-2 sm:gap-3'>
+          <span className='ai-badge text-xs mt-0.5 shrink-0'>AI</span>
+          <div className='flex-1 min-w-0'>
             <h3 className='font-semibold text-gray-900 mb-1 text-sm'>
               AI Analysis Summary
             </h3>
@@ -98,16 +98,19 @@ export default function SmartForm({
         <legend className='lbbd-label'>
           Is the fly-tip on public or private land?
         </legend>
-        <div className='space-y-2'>
+        <div className='space-y-1'>
           {(Object.keys(landOwnershipLabels) as LandOwnership[]).map((val) => (
-            <label key={val} className='flex items-center gap-3 cursor-pointer'>
+            <label
+              key={val}
+              className='flex items-center gap-3 cursor-pointer py-2 px-1 -mx-1 rounded-md hover:bg-gray-50 active:bg-gray-100 transition-colors'
+            >
               <input
                 type='radio'
                 name='landOwnership'
                 value={val}
                 checked={formData.landOwnership === val}
                 onChange={() => update('landOwnership', val)}
-                className='w-4 h-4 text-[#00703c] focus:ring-[#00703c]'
+                className='w-5 h-5 text-[#00703c] focus:ring-[#00703c] shrink-0'
               />
               <span className='text-sm text-gray-800'>
                 {landOwnershipLabels[val]}
@@ -171,12 +174,12 @@ export default function SmartForm({
 
       {/* Hazardous */}
       <div>
-        <label className='flex items-center gap-3 cursor-pointer'>
+        <label className='flex items-center gap-3 cursor-pointer py-2 px-1 -mx-1 rounded-md hover:bg-gray-50 active:bg-gray-100 transition-colors'>
           <input
             type='checkbox'
             checked={formData.hazardous}
             onChange={(e) => update('hazardous', e.target.checked)}
-            className='w-4 h-4 text-[#00703c] focus:ring-[#00703c] rounded'
+            className='w-5 h-5 text-[#00703c] focus:ring-[#00703c] rounded shrink-0'
           />
           <span className='text-sm font-medium text-gray-800'>
             Contains hazardous materials
@@ -215,16 +218,19 @@ export default function SmartForm({
         <legend className='lbbd-label'>
           Do you know who fly-tipped the waste?
         </legend>
-        <div className='flex gap-6'>
+        <div className='flex gap-4 sm:gap-6'>
           {(['yes', 'no'] as KnowsWhoTipped[]).map((val) => (
-            <label key={val} className='flex items-center gap-2 cursor-pointer'>
+            <label
+              key={val}
+              className='flex items-center gap-2 cursor-pointer py-2 px-2 -mx-1 rounded-md hover:bg-gray-50 active:bg-gray-100 transition-colors'
+            >
               <input
                 type='radio'
                 name='knowsWhoTipped'
                 value={val}
                 checked={formData.knowsWhoTipped === val}
                 onChange={() => update('knowsWhoTipped', val)}
-                className='w-4 h-4 text-[#00703c] focus:ring-[#00703c]'
+                className='w-5 h-5 text-[#00703c] focus:ring-[#00703c]'
               />
               <span className='text-sm text-gray-800 capitalize'>{val}</span>
             </label>
@@ -248,7 +254,7 @@ export default function SmartForm({
       )}
 
       {/* Contact Info */}
-      <div className='border-t border-gray-200 pt-6'>
+      <div className='border-t border-gray-200 pt-5 sm:pt-6'>
         <h3 className='text-base font-semibold text-gray-900 mb-1'>
           Your Details
         </h3>
@@ -256,7 +262,7 @@ export default function SmartForm({
           Optional. Used only if we need to follow up on your report.
         </p>
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
           <div>
             <label htmlFor='firstName' className='lbbd-label'>
               First name
@@ -283,7 +289,7 @@ export default function SmartForm({
           </div>
         </div>
 
-        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4'>
           <div>
             <label htmlFor='email' className='lbbd-label'>
               Email address

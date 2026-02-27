@@ -61,8 +61,14 @@ export default function MapComponent({
       center: [center.latitude, center.longitude],
       zoom: 14,
       scrollWheelZoom: true,
-      zoomControl: true
+      zoomControl: false, // We'll add it in a mobile-friendly position
+      tap: true, // Better mobile tap handling
+      dragging: true,
+      touchZoom: true
     });
+
+    // Add zoom control to bottom-right (easier thumb reach on mobile)
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',

@@ -157,16 +157,28 @@ export default function AdminPage() {
                     <th className='px-4 py-3'>Waste Type</th>
                     <th className='px-4 py-3'>Location Source</th>
                     <th className='px-4 py-3'>AI Confidence</th>
+                    <th className='px-4 py-3 text-right'>
+                      <span className='sr-only'>View</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-100'>
                   {filtered.map((report) => (
                     <tr
                       key={report.id}
-                      className='hover:bg-gray-50 transition-colors'
+                      className='hover:bg-gray-50 transition-colors cursor-pointer'
+                      onClick={() =>
+                        (globalThis.location.href = `/admin/report/${report.id}`)
+                      }
                     >
-                      <td className='px-4 py-3 font-mono text-xs text-[#0b0c0c]'>
-                        {report.id.slice(0, 12)}...
+                      <td className='px-4 py-3 font-mono text-xs'>
+                        <Link
+                          href={`/admin/report/${report.id}`}
+                          className='text-[#a50032] hover:underline'
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {report.id.slice(0, 12)}...
+                        </Link>
                       </td>
                       <td className='px-4 py-3 text-gray-600'>
                         <div>
@@ -223,6 +235,15 @@ export default function AdminPage() {
                         ) : (
                           '—'
                         )}
+                      </td>
+                      <td className='px-4 py-3 text-right'>
+                        <Link
+                          href={`/admin/report/${report.id}`}
+                          className='text-[#a50032] hover:text-[#0b0c0c] text-xs font-medium'
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          View &rarr;
+                        </Link>
                       </td>
                     </tr>
                   ))}

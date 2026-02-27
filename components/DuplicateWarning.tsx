@@ -23,7 +23,7 @@ export default function DuplicateWarning({
 
   return (
     <div
-      className={`border rounded-lg p-5 ${isBlocked ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-300'}`}
+      className={`border rounded-lg p-4 sm:p-5 ${isBlocked ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-300'}`}
     >
       <div className='flex items-start gap-3 mb-4'>
         <div
@@ -78,14 +78,14 @@ export default function DuplicateWarning({
       </div>
 
       {/* Show top 3 similar reports */}
-      <div className='space-y-3 mb-6'>
+      <div className='space-y-2 sm:space-y-3 mb-4 sm:mb-6'>
         {similarReports.slice(0, 3).map((report) => (
           <div
             key={report.reportId}
-            className={`bg-white rounded-lg p-4 border ${isBlocked ? 'border-red-200' : 'border-orange-200'}`}
+            className={`bg-white rounded-lg p-3 sm:p-4 border ${isBlocked ? 'border-red-200' : 'border-orange-200'}`}
           >
-            <div className='flex items-center gap-4'>
-              <div className='relative w-20 h-20 rounded overflow-hidden flex-shrink-0 bg-gray-100'>
+            <div className='flex items-center gap-3 sm:gap-4'>
+              <div className='relative w-16 h-16 sm:w-20 sm:h-20 rounded overflow-hidden flex-shrink-0 bg-gray-100'>
                 <Image
                   src={report.imageUrl}
                   alt='Similar report'
@@ -135,13 +135,13 @@ export default function DuplicateWarning({
             </p>
           </div>
 
-          <div className='flex items-center gap-3 mb-4'>
+          <div className='flex items-center gap-3 mb-3 sm:mb-4'>
             <input
               type='checkbox'
               id='confirm-not-duplicate'
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className='w-4 h-4'
+              className='w-5 h-5 shrink-0'
             />
             <label
               htmlFor='confirm-not-duplicate'
@@ -151,7 +151,7 @@ export default function DuplicateWarning({
             </label>
           </div>
 
-          <div className='flex gap-3'>
+          <div className='flex flex-col-reverse sm:flex-row gap-2 sm:gap-3'>
             <button onClick={onCancel} className='lbbd-btn-secondary flex-1'>
               Cancel Report
             </button>

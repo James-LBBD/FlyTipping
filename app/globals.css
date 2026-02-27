@@ -51,14 +51,16 @@ body {
 /* Form field styling */
 @layer components {
   .lbbd-input {
-    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-md text-base
+    @apply w-full px-3 sm:px-4 py-3 border-2 border-gray-300 rounded-md text-base
     focus:border-[#0b0c0c] focus:ring-2 focus:ring-[#0b0c0c]/20 focus:outline-none
     transition-colors;
+    min-height: 48px; /* WCAG touch target */
   }
   .lbbd-select {
-    @apply w-full px-4 py-3 border-2 border-gray-300 rounded-md text-base bg-white
+    @apply w-full px-3 sm:px-4 py-3 border-2 border-gray-300 rounded-md text-base bg-white
     focus:border-[#0b0c0c] focus:ring-2 focus:ring-[#0b0c0c]/20 focus:outline-none
     transition-colors appearance-none;
+    min-height: 48px; /* WCAG touch target */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 8.825L.35 3.175l.7-.7L6 7.425l4.95-4.95.7.7z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 1rem center;
@@ -71,21 +73,23 @@ body {
     @apply text-sm text-gray-600 mb-2;
   }
   .lbbd-btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 
+    @apply inline-flex items-center justify-center px-5 sm:px-6 py-3.5 sm:py-3 
     bg-[#00703c] hover:bg-[#005a30] active:bg-[#004825]
     text-white font-semibold text-base rounded-none
     transition-colors shadow-sm
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffdd00] focus-visible:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed;
     border: 2px solid var(--lbbd-black);
+    min-height: 48px; /* WCAG touch target */
   }
   .lbbd-btn-secondary {
-    @apply inline-flex items-center justify-center px-6 py-3 
+    @apply inline-flex items-center justify-center px-5 sm:px-6 py-3.5 sm:py-3 
     bg-white hover:bg-gray-50 active:bg-gray-100
     text-[#0b0c0c] font-semibold text-base rounded-none
     border-2 border-[#0b0c0c] transition-colors
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffdd00] focus-visible:ring-offset-2
     disabled:opacity-50 disabled:cursor-not-allowed;
+    min-height: 48px; /* WCAG touch target */
   }
   .lbbd-card {
     @apply bg-white rounded-lg border border-gray-200 shadow-sm;
@@ -105,6 +109,17 @@ body {
 input[type='radio'],
 input[type='checkbox'] {
   accent-color: var(--lbbd-green);
+  min-width: 20px;
+  min-height: 20px;
+}
+
+/* Mobile touch-friendly radio/checkbox rows */
+@media (max-width: 640px) {
+  input[type='radio'],
+  input[type='checkbox'] {
+    min-width: 22px;
+    min-height: 22px;
+  }
 }
 
 /* Confidence indicators */

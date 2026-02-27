@@ -19,7 +19,7 @@ import type {
 const MapComponent = dynamic(() => import('@/components/MapComponent'), {
   ssr: false,
   loading: () => (
-    <div className='h-[350px] rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500'>
+    <div className='h-[300px] sm:h-[350px] rounded-lg bg-gray-100 flex items-center justify-center text-sm text-gray-500'>
       Loading map...
     </div>
   )
@@ -45,17 +45,44 @@ const STEP_LABELS: { key: Step; label: string }[] = [
 // Default fallback location — centre of LBBD (Thames Road, Barking)
 const DEFAULT_LOCATION: Coordinates = { latitude: 51.5195, longitude: 0.0823 };
 
-// Try to extract EXIF GPS from image data
-async function extractExifCoords(dataUrl: string): Promise<Coordinates | null> {
+// Try to extract EXIF GPS from the original File object (preserves all metadata)
+async function extractExifCoords(file: File): Promise<Coordinates | null> {
   try {
-    const exifr = await import('exifr');
-    const blob = await fetch(dataUrl).then((r) => r.blob());
-    const gps = await exifr.gps(blob);
+    const exifrModule = await import('exifr');
+    // Handle both default and named exports from dynamic import
+    const exifr = exifrModule.default || exifrModule;
+
+    // First try the full parse with GPS tags enabled — more reliable than .gps()
+    const buffer = await file.arrayBuffer();
+    const parsed = await exifr.parse(buffer, {
+      gps: true,
+      tiff: true,
+      ifd0: true,
+      exif: true,
+      pick: [
+        'GPSLatitude',
+        'GPSLongitude',
+        'GPSLatitudeRef',
+        'GPSLongitudeRef',
+        'latitude',
+        'longitude'
+      ]
+    });
+    console.log('[EXIF] Full parse result:', parsed);
+
+    if (parsed?.latitude && parsed?.longitude) {
+      console.log('[EXIF] Found GPS:', parsed.latitude, parsed.longitude);
+      return { latitude: parsed.latitude, longitude: parsed.longitude };
+    }
+
+    // Fallback: try .gps() shorthand
+    const gps = await exifr.gps(buffer);
+    console.log('[EXIF] gps() fallback:', gps);
     if (gps?.latitude && gps?.longitude) {
       return { latitude: gps.latitude, longitude: gps.longitude };
     }
-  } catch {
-    // No EXIF data or exifr not available
+  } catch (err) {
+    console.warn('[EXIF] GPS extraction failed:', err);
   }
   return null;
 }
@@ -117,8 +144,11 @@ export default function ReportPage() {
         return;
       }
 
-      // Try to get location from EXIF
-      const exifCoords = await extractExifCoords(data);
+      // Brief pause so user sees the validation success
+      await new Promise((r) => setTimeout(r, 1000));
+
+      // Try to get location from EXIF — pass original File to preserve metadata
+      const exifCoords = await extractExifCoords(file);
       if (exifCoords) {
         setLocation(exifCoords);
         setLocationSource('exif');
@@ -303,13 +333,13 @@ export default function ReportPage() {
   })();
 
   return (
-    <div className='bg-gray-50 min-h-[calc(100vh-12rem)]'>
+    <div className='bg-gray-50 min-h-[calc(100vh-8rem)]'>
       <OfflineIndicator />
 
-      <div className='max-w-3xl mx-auto px-4 sm:px-6 py-8'>
+      <div className='max-w-3xl mx-auto px-3 sm:px-6 py-4 sm:py-8'>
         {/* Header */}
-        <div className='mb-6'>
-          <h1 className='text-2xl font-bold text-gray-900'>
+        <div className='mb-4 sm:mb-6'>
+          <h1 className='text-xl sm:text-2xl font-bold text-gray-900'>
             Report Fly-Tipping
           </h1>
           <p className='text-sm text-gray-600 mt-1'>
@@ -318,7 +348,7 @@ export default function ReportPage() {
         </div>
 
         {/* Progress Steps */}
-        <nav className='mb-8' aria-label='Progress'>
+        <nav className='mb-5 sm:mb-8' aria-label='Progress'>
           <div className='flex items-center justify-between'>
             {STEP_LABELS.map((s, idx) => {
               const isActive = idx <= stepIndex;
@@ -327,21 +357,21 @@ export default function ReportPage() {
                 <div key={s.key} className='flex items-center flex-1'>
                   <div className='flex flex-col items-center'>
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-colors
                         ${isActive ? 'bg-[#0b0c0c] text-white' : 'bg-gray-200 text-gray-500'}
-                        ${isCurrent ? 'ring-2 ring-[#0b0c0c]/30 ring-offset-2' : ''}`}
+                        ${isCurrent ? 'ring-2 ring-[#0b0c0c]/30 ring-offset-1 sm:ring-offset-2' : ''}`}
                     >
                       {idx + 1}
                     </div>
                     <span
-                      className={`text-[11px] mt-1 ${isActive ? 'text-[#0b0c0c] font-medium' : 'text-gray-400'}`}
+                      className={`text-[10px] sm:text-[11px] mt-1 ${isActive ? 'text-[#0b0c0c] font-medium' : 'text-gray-400'}`}
                     >
                       {s.label}
                     </span>
                   </div>
                   {idx < STEP_LABELS.length - 1 && (
                     <div
-                      className={`flex-1 h-0.5 mx-2 mt-[-14px] ${isActive && idx < stepIndex ? 'bg-[#0b0c0c]' : 'bg-gray-200'}`}
+                      className={`flex-1 h-0.5 mx-1 sm:mx-2 mt-[-14px] ${isActive && idx < stepIndex ? 'bg-[#0b0c0c]' : 'bg-gray-200'}`}
                     />
                   )}
                 </div>
@@ -366,7 +396,7 @@ export default function ReportPage() {
 
           {/* ─── Validating ─────────────────────────────────────── */}
           {step === 'validating' && !validationResult && (
-            <div className='text-center py-12'>
+            <div className='text-center py-8 sm:py-12'>
               <div className='spinner mx-auto mb-4' />
               <p className='font-semibold text-gray-900'>
                 Validating your photo...
@@ -415,7 +445,7 @@ export default function ReportPage() {
                 location={location}
                 onLocationSelect={handleMapLocationSelect}
                 interactive
-                className='h-[350px]'
+                className='h-[280px] sm:h-[350px]'
               />
 
               {location && (
@@ -459,7 +489,7 @@ export default function ReportPage() {
 
           {/* ─── Extracting ─────────────────────────────────────── */}
           {step === 'extracting' && (
-            <div className='text-center py-12'>
+            <div className='text-center py-8 sm:py-12'>
               <div className='spinner mx-auto mb-4' />
               <p className='font-semibold text-gray-900'>
                 Analysing your photo...
@@ -480,7 +510,7 @@ export default function ReportPage() {
           )}
 
           {step === 'duplicate-check' && similarReports.length === 0 && (
-            <div className='text-center py-12'>
+            <div className='text-center py-8 sm:py-12'>
               <div className='spinner mx-auto mb-4' />
               <p className='font-semibold text-gray-900'>
                 Checking for existing reports nearby...
@@ -499,7 +529,7 @@ export default function ReportPage() {
 
           {/* ─── Submitting ─────────────────────────────────────── */}
           {step === 'submitting' && (
-            <div className='text-center py-12'>
+            <div className='text-center py-8 sm:py-12'>
               <div
                 className='spinner mx-auto mb-4'
                 style={{ borderTopColor: '#00703c' }}
