@@ -68,16 +68,13 @@ async function extractExifCoords(file: File): Promise<Coordinates | null> {
         'longitude'
       ]
     });
-    console.log('[EXIF] Full parse result:', parsed);
 
     if (parsed?.latitude && parsed?.longitude) {
-      console.log('[EXIF] Found GPS:', parsed.latitude, parsed.longitude);
       return { latitude: parsed.latitude, longitude: parsed.longitude };
     }
 
     // Fallback: try .gps() shorthand
     const gps = await exifr.gps(buffer);
-    console.log('[EXIF] gps() fallback:', gps);
     if (gps?.latitude && gps?.longitude) {
       return { latitude: gps.latitude, longitude: gps.longitude };
     }
@@ -388,7 +385,7 @@ export default function ReportPage() {
         )}
 
         {/* Content Card */}
-        <div className='lbbd-card'>
+        <div className='lbbd-card p-4 sm:p-6'>
           {/* ─── Upload ─────────────────────────────────────────── */}
           {step === 'upload' && (
             <ImageUpload onImageSelected={handleImageSelected} />

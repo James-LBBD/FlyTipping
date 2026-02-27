@@ -28,7 +28,10 @@ export function cosineSimilarity(vectorA: number[], vectorB: number[]): number {
 }
 
 // Calculate distance between two coordinates in meters (Haversine formula)
-export function calculateDistance(coord1: Coordinates, coord2: Coordinates): number {
+export function calculateDistance(
+  coord1: Coordinates,
+  coord2: Coordinates
+): number {
   const R = 6371000; // Earth's radius in meters
   const lat1 = toRadians(coord1.latitude);
   const lat2 = toRadians(coord2.latitude);
@@ -37,7 +40,10 @@ export function calculateDistance(coord1: Coordinates, coord2: Coordinates): num
 
   const a =
     Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+    Math.cos(lat1) *
+      Math.cos(lat2) *
+      Math.sin(deltaLon / 2) *
+      Math.sin(deltaLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
@@ -48,33 +54,53 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
 
-// Find similar reports based on embedding similarity and proximity
+// Threshold above which two images are treated as the same photo
+// regardless of where the user placed the map pin.
+const IMAGE_DUPLICATE_THRESHOLD = 0.9;
+
+// Find similar reports based on embedding similarity and proximity.
+// Two matching strategies:
+//   1. Proximity match  – within searchRadius AND similarity ≥ threshold
+//   2. Image-only match – similarity ≥ IMAGE_DUPLICATE_THRESHOLD at ANY distance
+//      (catches the same photo uploaded with a different map pin)
 export function findSimilarReports(
   targetEmbedding: number[],
   targetCoords: Coordinates,
-  allReports: Map<string, { embedding: Embedding; coords: Coordinates; imageUrl: string; timestamp: string }>,
+  allReports: Map<
+    string,
+    {
+      embedding: Embedding;
+      coords: Coordinates;
+      imageUrl: string;
+      timestamp: string;
+    }
+  >,
   searchRadius: number = 100, // meters
   similarityThreshold: number = 0.7
 ): SimilarReport[] {
   const similarReports: SimilarReport[] = [];
 
   for (const [reportId, report] of allReports.entries()) {
-    // Check proximity first
     const distance = calculateDistance(targetCoords, report.coords);
-    if (distance > searchRadius) {
-      continue;
-    }
+    const similarity = cosineSimilarity(
+      targetEmbedding,
+      report.embedding.vector
+    );
 
-    // Calculate embedding similarity
-    const similarity = cosineSimilarity(targetEmbedding, report.embedding.vector);
-    
-    if (similarity >= similarityThreshold) {
+    // Strategy 1: nearby + moderately similar
+    const isProximityMatch =
+      distance <= searchRadius && similarity >= similarityThreshold;
+
+    // Strategy 2: extremely similar image regardless of distance
+    const isImageDuplicate = similarity >= IMAGE_DUPLICATE_THRESHOLD;
+
+    if (isProximityMatch || isImageDuplicate) {
       similarReports.push({
         reportId,
         similarity,
         distance,
         timestamp: report.timestamp,
-        imageUrl: report.imageUrl,
+        imageUrl: report.imageUrl
       });
     }
   }
@@ -84,7 +110,9 @@ export function findSimilarReports(
 }
 
 // Get confidence level based on similarity score
-export function getConfidenceLevel(similarity: number): 'high' | 'medium' | 'low' {
+export function getConfidenceLevel(
+  similarity: number
+): 'high' | 'medium' | 'low' {
   if (similarity >= 0.9) return 'high';
   if (similarity >= 0.75) return 'medium';
   return 'low';
