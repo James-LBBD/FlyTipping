@@ -57,7 +57,6 @@ async function extractExifCoords(file: File): Promise<Coordinates | null> {
     const parsed = await exifr.parse(buffer, {
       gps: true,
       tiff: true,
-      ifd0: true,
       exif: true,
       pick: [
         'GPSLatitude',
@@ -67,7 +66,7 @@ async function extractExifCoords(file: File): Promise<Coordinates | null> {
         'latitude',
         'longitude'
       ]
-    });
+    } as Parameters<typeof exifr.parse>[1]);
 
     if (parsed?.latitude && parsed?.longitude) {
       return { latitude: parsed.latitude, longitude: parsed.longitude };

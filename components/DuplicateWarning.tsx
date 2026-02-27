@@ -104,7 +104,8 @@ export default function DuplicateWarning({
                   </span>
                 </div>
                 <p className='text-sm text-gray-600'>
-                  Reported {new Date(report.timestamp).toLocaleDateString('en-GB')}
+                  Reported{' '}
+                  {new Date(report.timestamp).toLocaleDateString('en-GB')}
                 </p>
               </div>
             </div>
