@@ -3,8 +3,16 @@ import type { Coordinates, SimilarReport, Embedding } from '@/types';
 
 // Calculate cosine similarity between two vectors
 export function cosineSimilarity(vectorA: number[], vectorB: number[]): number {
+  if (
+    !Array.isArray(vectorA) ||
+    !Array.isArray(vectorB) ||
+    vectorA.length === 0 ||
+    vectorB.length === 0
+  ) {
+    return 0;
+  }
   if (vectorA.length !== vectorB.length) {
-    throw new Error('Vectors must have the same length');
+    return 0;
   }
 
   let dotProduct = 0;
@@ -81,6 +89,14 @@ export function findSimilarReports(
   const similarReports: SimilarReport[] = [];
 
   for (const [reportId, report] of allReports.entries()) {
+    // Skip reports with missing or invalid embedding vectors
+    if (
+      !Array.isArray(report.embedding?.vector) ||
+      report.embedding.vector.length === 0
+    ) {
+      continue;
+    }
+
     const distance = calculateDistance(targetCoords, report.coords);
     const similarity = cosineSimilarity(
       targetEmbedding,

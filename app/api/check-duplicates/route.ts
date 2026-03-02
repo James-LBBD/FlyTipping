@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllReports } from '@/lib/storage';
 import { findSimilarReports } from '@/lib/similarity';
-import type { Coordinates, Embedding } from '@/types';
+import type { Coordinates } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
     const { embedding, coordinates, searchRadius = 100 } = await request.json();
 
-    if (!embedding || !coordinates) {
+    if (!Array.isArray(embedding) || embedding.length === 0 || !coordinates) {
       return NextResponse.json(
-        { error: 'Embedding and coordinates are required' },
+        { error: 'Valid embedding array and coordinates are required' },
         { status: 400 }
       );
     }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
           embedding: report.embedding,
           coords: report.location.coordinates,
           imageUrl: `/images/${report.image.id}.jpg`,
-          timestamp: report.createdAt,
+          timestamp: report.createdAt
         });
       }
     }
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       hasDuplicates,
       similarReports,
-      highestSimilarity: similarReports[0]?.similarity || 0,
+      highestSimilarity: similarReports[0]?.similarity || 0
     });
   } catch (error) {
     console.error('Duplicate check error:', error);

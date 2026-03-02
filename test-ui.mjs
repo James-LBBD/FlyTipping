@@ -70,7 +70,7 @@ function step(n, label) {
     step(2, 'Upload fly-tipping image');
     // ═══════════════════════════════════════════════════════════════
     // The ImageUpload component has a hidden file input
-    const fileInput = page.locator('input[type="file"]');
+    const fileInput = page.locator('input[type="file"]').first();
     await fileInput.waitFor({ state: 'attached', timeout: 10000 });
     await fileInput.setInputFiles(TEST_IMAGE);
     console.log(`  📤 Uploaded: ${images[0]}`);
@@ -252,7 +252,7 @@ function step(n, label) {
       console.log('  🔄 Going back to submit same image again...');
       await page.goto(`${BASE_URL}/report`, { waitUntil: 'networkidle' });
 
-      const fileInput2 = page.locator('input[type="file"]');
+      const fileInput2 = page.locator('input[type="file"]').first();
       await fileInput2.waitFor({ state: 'attached', timeout: 10000 });
       await fileInput2.setInputFiles(TEST_IMAGE);
       console.log(`  📤 Re-uploaded: ${images[0]}`);

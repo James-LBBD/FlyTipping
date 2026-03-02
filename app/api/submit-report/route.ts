@@ -16,7 +16,10 @@ export async function POST(request: NextRequest) {
     const reportData = await request.json();
 
     // ── Server-side duplicate enforcement ──────────────────────────
-    if (reportData.embedding?.vector && reportData.location?.coordinates) {
+    const hasValidEmbedding =
+      Array.isArray(reportData.embedding?.vector) &&
+      reportData.embedding.vector.length > 0;
+    if (hasValidEmbedding && reportData.location?.coordinates) {
       const allReports = await getAllReports();
       const reportsMap = new Map();
       for (const report of allReports) {
@@ -98,8 +101,14 @@ export async function POST(request: NextRequest) {
     };
 
     // Save report and embedding
+    // If embedding vector is invalid (e.g. AI was unavailable), omit it from the saved report
+    if (!hasValidEmbedding) {
+      report.embedding = undefined as unknown as Report['embedding'];
+    }
     await saveReport(report);
-    await saveEmbedding(reportId, reportData.embedding);
+    if (hasValidEmbedding) {
+      await saveEmbedding(reportId, reportData.embedding);
+    }
 
     return NextResponse.json({
       success: true,

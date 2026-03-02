@@ -197,36 +197,65 @@ export default function ReportPage() {
 
       // Generate embedding + check duplicates
       setStep('duplicate-check');
-      const embeddingRes = await fetch('/api/generate-embedding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          image: imageData,
-          extractedText: fields.description
-        })
-      });
-      const embeddingData = await embeddingRes.json();
-      setEmbedding(embeddingData.embedding);
+      let embeddingVector: number[] | null = null;
 
-      const duplicateRes = await fetch('/api/check-duplicates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          embedding: embeddingData.embedding,
-          coordinates: location,
-          searchRadius: 100
-        })
-      });
-      const duplicateCheck = await duplicateRes.json();
+      try {
+        const embeddingRes = await fetch('/api/generate-embedding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: imageData,
+            extractedText: fields.description
+          })
+        });
 
-      if (
-        duplicateCheck.hasDuplicates &&
-        duplicateCheck.similarReports.length > 0
-      ) {
-        setSimilarReports(duplicateCheck.similarReports);
-      } else {
-        setStep('form');
+        if (embeddingRes.ok) {
+          const embeddingData = await embeddingRes.json();
+          if (
+            Array.isArray(embeddingData.embedding) &&
+            embeddingData.embedding.length > 0
+          ) {
+            embeddingVector = embeddingData.embedding;
+          }
+        }
+      } catch (e) {
+        console.warn(
+          'Embedding generation failed, skipping duplicate check:',
+          e
+        );
       }
+
+      setEmbedding(embeddingVector);
+
+      // Only check duplicates if we have a valid embedding
+      if (embeddingVector) {
+        try {
+          const duplicateRes = await fetch('/api/check-duplicates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              embedding: embeddingVector,
+              coordinates: location,
+              searchRadius: 100
+            })
+          });
+
+          if (duplicateRes.ok) {
+            const duplicateCheck = await duplicateRes.json();
+            if (
+              duplicateCheck.hasDuplicates &&
+              duplicateCheck.similarReports?.length > 0
+            ) {
+              setSimilarReports(duplicateCheck.similarReports);
+              return; // stay on duplicate-check step to show warning
+            }
+          }
+        } catch (e) {
+          console.warn('Duplicate check failed, proceeding to form:', e);
+        }
+      }
+
+      setStep('form');
     } catch (error) {
       console.error('Processing error:', error);
       setProcessingError(
@@ -270,11 +299,13 @@ export default function ReportPage() {
           },
           confidence: extractedFields!.confidence
         },
-        embedding: {
-          vector: embedding!,
-          modelUsed: 'text-embedding-3-large',
-          generatedAt: new Date().toISOString()
-        },
+        embedding: embedding
+          ? {
+              vector: embedding,
+              modelUsed: 'text-embedding-3-large',
+              generatedAt: new Date().toISOString()
+            }
+          : undefined,
         location: {
           coordinates: location!,
           withinBoundary: locationValid ?? true,
