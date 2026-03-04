@@ -6,21 +6,91 @@ import {
   generateReportId,
   getAllReports
 } from '@/lib/storage';
-import { findSimilarReports } from '@/lib/similarity';
+import { findSimilarReports, cosineSimilarity } from '@/lib/similarity';
+import { computeImageHash } from '@/lib/image-hash';
 import type { Report } from '@/types';
 
 const HIGH_SIMILARITY_THRESHOLD = 0.85;
+const CONTENT_FINGERPRINT_THRESHOLD = 0.97;
 
 export async function POST(request: NextRequest) {
   try {
     const reportData = await request.json();
 
-    // ── Server-side duplicate enforcement ──────────────────────────
+    // ── Compute image hash server-side (authoritative) ────────────
+    const imageBuffer = Buffer.from(reportData.imageData, 'base64');
+    const imageHash = computeImageHash(imageBuffer);
+
+    // ── Server-side duplicate enforcement — three layers ──────────
+    const allReports = await getAllReports();
+
+    // Layer 1: Image hash — exact same photo at any location
+    for (const report of allReports) {
+      if (report.imageHash && report.imageHash === imageHash) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'duplicate_blocked',
+            message: `This is the same image as an existing report (${report.id}). The same photo cannot be reported twice.`,
+            similarReport: {
+              reportId: report.id,
+              similarity: 1.0,
+              distance: Infinity,
+              timestamp: report.createdAt,
+              imageUrl: `/images/${report.image.id}.jpg`,
+              matchType: 'image_hash'
+            }
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    // Layer 2: Content fingerprint — same AI output at any location
     const hasValidEmbedding =
       Array.isArray(reportData.embedding?.vector) &&
       reportData.embedding.vector.length > 0;
+
+    if (hasValidEmbedding && reportData.wasteType && reportData.wasteSize) {
+      for (const report of allReports) {
+        if (
+          !Array.isArray(report.embedding?.vector) ||
+          report.embedding.vector.length === 0
+        ) {
+          continue;
+        }
+
+        const sim = cosineSimilarity(
+          reportData.embedding.vector,
+          report.embedding.vector
+        );
+        if (
+          sim >= CONTENT_FINGERPRINT_THRESHOLD &&
+          report.wasteType === reportData.wasteType &&
+          report.wasteSize === reportData.wasteSize
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'duplicate_blocked',
+              message: `This appears to be the same incident as report ${report.id} — identical waste analysis (${Math.round(sim * 100)}% match). Submission blocked.`,
+              similarReport: {
+                reportId: report.id,
+                similarity: sim,
+                distance: Infinity,
+                timestamp: report.createdAt,
+                imageUrl: `/images/${report.image.id}.jpg`,
+                matchType: 'content'
+              }
+            },
+            { status: 409 }
+          );
+        }
+      }
+    }
+
+    // Layer 3: Proximity — similar waste nearby
     if (hasValidEmbedding && reportData.location?.coordinates) {
-      const allReports = await getAllReports();
       const reportsMap = new Map();
       for (const report of allReports) {
         if (report.embedding && report.location.coordinates) {
@@ -42,18 +112,21 @@ export async function POST(request: NextRequest) {
       );
 
       const highConfidenceDuplicate = similarReports.find(
-        (r) => r.similarity >= HIGH_SIMILARITY_THRESHOLD
+        (r) => r.similarity >= HIGH_SIMILARITY_THRESHOLD && r.distance <= 100
       );
 
-      // High-confidence duplicates (>=85%) are ALWAYS blocked — the override
-      // flag only applies to medium-confidence matches (70-85%)
+      // Block only when BOTH high text similarity AND nearby — same waste type
+      // at a different location is a separate incident, not a duplicate
       if (highConfidenceDuplicate) {
         return NextResponse.json(
           {
             success: false,
             error: 'duplicate_blocked',
-            message: `This report is ${Math.round(highConfidenceDuplicate.similarity * 100)}% similar to an existing report (${highConfidenceDuplicate.reportId}). Submission blocked.`,
-            similarReport: highConfidenceDuplicate
+            message: `This report is ${Math.round(highConfidenceDuplicate.similarity * 100)}% similar to an existing report (${highConfidenceDuplicate.reportId}) ${Math.round(highConfidenceDuplicate.distance)}m away. Submission blocked.`,
+            similarReport: {
+              ...highConfidenceDuplicate,
+              matchType: 'proximity'
+            }
           },
           { status: 409 }
         );
@@ -64,7 +137,6 @@ export async function POST(request: NextRequest) {
     const reportId = generateReportId();
 
     // Save image
-    const imageBuffer = Buffer.from(reportData.imageData, 'base64');
     const imagePath = await saveImage(reportData.image.id, imageBuffer);
 
     // Build complete report object
@@ -79,6 +151,7 @@ export async function POST(request: NextRequest) {
       },
       aiMetadata: reportData.aiMetadata,
       embedding: reportData.embedding,
+      imageHash,
       location: reportData.location,
       locationDetails: reportData.locationDetails,
       wasteType: reportData.wasteType,

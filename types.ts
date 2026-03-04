@@ -99,6 +99,7 @@ export interface SimilarReport {
   distance: number; // meters
   timestamp: string;
   imageUrl: string;
+  matchType?: 'image_hash' | 'content' | 'proximity';
 }
 
 export interface Report {
@@ -111,6 +112,7 @@ export interface Report {
   image: ImageData;
   aiMetadata: AIMetadata;
   embedding: Embedding;
+  imageHash?: string; // SHA-256 of the raw image bytes for exact-match duplicate detection
 
   // Location
   location: Location;

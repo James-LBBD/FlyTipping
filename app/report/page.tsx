@@ -45,6 +45,21 @@ const STEP_LABELS: { key: Step; label: string }[] = [
 // Default fallback location — centre of LBBD (Thames Road, Barking)
 const DEFAULT_LOCATION: Coordinates = { latitude: 51.5195, longitude: 0.0823 };
 
+// Compute SHA-256 hash of the raw image bytes (mirrors server-side computeImageHash)
+async function computeImageHashClient(base64Data: string): Promise<string> {
+  const rawBase64 = base64Data.includes('base64,')
+    ? base64Data.split('base64,')[1]
+    : base64Data;
+  const binaryString = atob(rawBase64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.codePointAt(i) || 0;
+  }
+  const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Try to extract EXIF GPS from the original File object (preserves all metadata)
 async function extractExifCoords(file: File): Promise<Coordinates | null> {
   try {
@@ -110,6 +125,7 @@ export default function ReportPage() {
     useState<FieldExtractionResult | null>(null);
   const [similarReports, setSimilarReports] = useState<SimilarReport[]>([]);
   const [embedding, setEmbedding] = useState<number[] | null>(null);
+  const [imageHash, setImageHash] = useState<string | null>(null);
   const [location, setLocation] = useState<Coordinates | null>(null);
   const [locationSource, setLocationSource] = useState<
     'exif' | 'browser' | 'manual'
@@ -124,6 +140,10 @@ export default function ReportPage() {
     setImageFile(file);
     setStep('validating');
     setProcessingError(null);
+
+    // Compute image hash early for duplicate detection
+    const hash = await computeImageHashClient(data);
+    setImageHash(hash);
 
     try {
       // Validate image
@@ -227,8 +247,9 @@ export default function ReportPage() {
 
       setEmbedding(embeddingVector);
 
-      // Only check duplicates if we have a valid embedding
-      if (embeddingVector) {
+      // Check duplicates — send imageHash, embedding, and form fields for
+      // three-layer detection (image hash, content fingerprint, proximity)
+      if (embeddingVector || imageHash) {
         try {
           const duplicateRes = await fetch('/api/check-duplicates', {
             method: 'POST',
@@ -236,7 +257,10 @@ export default function ReportPage() {
             body: JSON.stringify({
               embedding: embeddingVector,
               coordinates: location,
-              searchRadius: 100
+              searchRadius: 100,
+              imageHash,
+              wasteType: fields.wasteType,
+              wasteSize: fields.wasteSize
             })
           });
 

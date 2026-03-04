@@ -12,14 +12,89 @@ interface DuplicateWarningProps {
 
 const HIGH_SIMILARITY_THRESHOLD = 0.85;
 
+function getBlockReason(report: SimilarReport): string {
+  switch (report.matchType) {
+    case 'image_hash':
+      return 'This is the exact same photo as an existing report. The same image cannot be reported twice, even at a different location.';
+    case 'content':
+      return `This appears to be the same incident — the AI analysis is ${Math.round(report.similarity * 100)}% identical to an existing report. If you took a different photo of a genuinely new incident, please try again with that image.`;
+    default:
+      return `This appears to be the same incident as an existing report (${Math.round(report.similarity * 100)}% match). Submission is not permitted.`;
+  }
+}
+
+function getWarnMessage(reports: SimilarReport[]): string {
+  const highest = reports[0];
+  if (highest?.matchType === 'image_hash') {
+    return 'This photo has already been used in a report.';
+  }
+  if (highest?.matchType === 'content') {
+    return `The AI analysis closely matches ${reports.length} existing report${reports.length > 1 ? 's' : ''} — this may be the same incident photographed again.`;
+  }
+  return `We found ${reports.length} similar report${reports.length > 1 ? 's' : ''} nearby (${Math.round(highest.similarity * 100)}% match).`;
+}
+
+function getMatchBadge(report: SimilarReport): {
+  label: string;
+  color: string;
+} {
+  switch (report.matchType) {
+    case 'image_hash':
+      return { label: 'Same image', color: 'bg-red-100 text-red-800' };
+    case 'content':
+      return { label: 'Same analysis', color: 'bg-orange-100 text-orange-800' };
+    default:
+      return {
+        label: `${Math.round(report.distance)}m away`,
+        color: 'bg-gray-100 text-gray-700'
+      };
+  }
+}
+
+function getWarningTitle(
+  hasImageHashMatch: boolean,
+  hasContentMatch: boolean,
+  isBlocked: boolean
+): string {
+  if (hasImageHashMatch) {
+    return 'Same Image Already Reported';
+  }
+  if (hasContentMatch) {
+    return 'Likely Duplicate Report';
+  }
+  if (isBlocked) {
+    return 'Duplicate Report Blocked';
+  }
+  return 'Possible Duplicate Detected';
+}
+
 export default function DuplicateWarning({
   similarReports,
   onContinue,
   onCancel
-}: DuplicateWarningProps) {
+}: Readonly<DuplicateWarningProps>) {
   const [confirmed, setConfirmed] = useState(false);
   const highestSimilarity = similarReports[0]?.similarity || 0;
-  const isBlocked = highestSimilarity >= HIGH_SIMILARITY_THRESHOLD;
+  const hasImageHashMatch = similarReports.some(
+    (r) => r.matchType === 'image_hash'
+  );
+  const hasContentMatch = similarReports.some((r) => r.matchType === 'content');
+  const isBlocked =
+    hasImageHashMatch ||
+    hasContentMatch ||
+    highestSimilarity >= HIGH_SIMILARITY_THRESHOLD;
+
+  const getBlockMessage = (): string => {
+    if (hasImageHashMatch) {
+      return 'This report has been blocked because the same photo was already submitted. If this is a different incident, please take a new photo.';
+    }
+    if (hasContentMatch) {
+      return 'This report has been blocked because the AI analysis is nearly identical to an existing report. If this is genuinely a new incident, try uploading a different photo.';
+    }
+    return 'This report has been blocked because it matches an existing report with high confidence. If you believe this is a mistake, please contact the council directly.';
+  };
+
+  const blockMessage = getBlockMessage();
 
   return (
     <div
@@ -63,16 +138,14 @@ export default function DuplicateWarning({
           <h3
             className={`font-semibold mb-1 text-sm ${isBlocked ? 'text-red-900' : 'text-amber-900'}`}
           >
-            {isBlocked
-              ? 'Duplicate Report Blocked'
-              : 'Possible Duplicate Detected'}
+            {getWarningTitle(hasImageHashMatch, hasContentMatch, isBlocked)}
           </h3>
           <p
             className={`text-sm ${isBlocked ? 'text-red-800' : 'text-amber-800'}`}
           >
             {isBlocked
-              ? `This appears to be the same incident as an existing report (${Math.round(highestSimilarity * 100)}% match). Submission is not permitted.`
-              : `We found ${similarReports.length} similar report${similarReports.length > 1 ? 's' : ''} nearby (${Math.round(highestSimilarity * 100)}% match).`}
+              ? getBlockReason(similarReports[0])
+              : getWarnMessage(similarReports)}
           </p>
         </div>
       </div>
@@ -95,13 +168,22 @@ export default function DuplicateWarning({
                 />
               </div>
               <div className='flex-1'>
-                <div className='flex items-center gap-2 mb-1'>
+                <div className='flex items-center gap-2 mb-1 flex-wrap'>
                   <span className='font-semibold text-gray-900'>
-                    {Math.round(report.similarity * 100)}% similar
+                    {report.matchType === 'image_hash'
+                      ? '100% match'
+                      : `${Math.round(report.similarity * 100)}% similar`}
                   </span>
-                  <span className='text-sm text-gray-600'>
-                    • {Math.round(report.distance)}m away
-                  </span>
+                  {(() => {
+                    const badge = getMatchBadge(report);
+                    return (
+                      <span
+                        className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${badge.color}`}
+                      >
+                        {badge.label}
+                      </span>
+                    );
+                  })()}
                 </div>
                 <p className='text-sm text-gray-600'>
                   Reported{' '}
@@ -116,11 +198,7 @@ export default function DuplicateWarning({
       {isBlocked ? (
         <>
           <div className='bg-red-100/60 border border-red-200 rounded-lg p-3 mb-4'>
-            <p className='text-xs text-red-900'>
-              This report has been blocked because it matches an existing report
-              with high confidence. If you believe this is a mistake, please
-              contact the council directly.
-            </p>
+            <p className='text-xs text-red-900'>{blockMessage}</p>
           </div>
           <button onClick={onCancel} className='lbbd-btn-primary w-full'>
             Go Back to Home

@@ -62,15 +62,12 @@ function toRadians(degrees: number): number {
   return degrees * (Math.PI / 180);
 }
 
-// Threshold above which two images are treated as the same photo
-// regardless of where the user placed the map pin.
-const IMAGE_DUPLICATE_THRESHOLD = 0.9;
-
-// Find similar reports based on embedding similarity and proximity.
-// Two matching strategies:
-//   1. Proximity match  – within searchRadius AND similarity ≥ threshold
-//   2. Image-only match – similarity ≥ IMAGE_DUPLICATE_THRESHOLD at ANY distance
-//      (catches the same photo uploaded with a different map pin)
+// Find similar reports based on embedding similarity AND geographic proximity.
+//
+// Embeddings are generated from text descriptions, not image pixels, so two
+// completely different fly-tip photos with similar waste will score high.
+// Location is therefore always required — separate locations mean separate
+// incidents, even if the waste type is identical.
 export function findSimilarReports(
   targetEmbedding: number[],
   targetCoords: Coordinates,
@@ -98,19 +95,18 @@ export function findSimilarReports(
     }
 
     const distance = calculateDistance(targetCoords, report.coords);
+
+    // Different location = different incident, skip regardless of text similarity
+    if (distance > searchRadius) {
+      continue;
+    }
+
     const similarity = cosineSimilarity(
       targetEmbedding,
       report.embedding.vector
     );
 
-    // Strategy 1: nearby + moderately similar
-    const isProximityMatch =
-      distance <= searchRadius && similarity >= similarityThreshold;
-
-    // Strategy 2: extremely similar image regardless of distance
-    const isImageDuplicate = similarity >= IMAGE_DUPLICATE_THRESHOLD;
-
-    if (isProximityMatch || isImageDuplicate) {
+    if (similarity >= similarityThreshold) {
       similarReports.push({
         reportId,
         similarity,
